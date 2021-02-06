@@ -1,5 +1,5 @@
 
-import firebase from 'firebase/app' 
+import firebase from 'firebase/app'
 import "firebase/analytics";
 import "firebase/auth";
 import "firebase/firestore";
@@ -16,18 +16,63 @@ const firebaseConfig = {
   measurementId: "G-BWDZP52ZCB"
 };
 
+export const createUserProfileDocument = async (userAuth, additionalData) => {
+  
+  if (!userAuth) {
+    console.log(`Users: ${userAuth}`)
+    return;
+  };
+
+  const userRef = firestore.doc(`users/${userAuth.uid}`);
+
+  const snapShot =  await userRef.get();
+
+  console.log(`snap shot extists: ${snapShot.exists}`);
+
+  if(!snapShot.exists) {
+
+    const { displayName, email } = userAuth;
+    const createAt = new Date();
+
+    try {
+      await userRef.set({
+        displayName,
+        email,
+        createAt,
+        ...additionalData
+      })
+
+    } catch(error) {
+      console.log( 'error creating user', error);
+    }
+
+
+    
+  }
+  
+  return userRef;
+
+
+}
+
 firebase.initializeApp(firebaseConfig);
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
 const provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({prompt: 'select_account'});
+provider.setCustomParameters({ prompt: 'select_account' });
 
 export const signInWithGoogle = () => {
-  
+
   auth.signInWithPopup(provider)
 
 }
 
+
 export default firebase;
+
+// // console.log(firestore.collection('users').doc('Rct7r3fmUkpu4ifZ2Rxx').collection('cartItems'))
+// firestore.collection('users').doc('Rct7r3fmUkpu4ifZ2Rxx').collection('cartItems').doc('iU2b5EJA28q8bUB2OOPc')
+// firestore.doc('/users/Rct7r3fmUkpu4ifZ2Rxx/cartItems/iU2b5EJA28q8bUB2OOPc');
+// firestore.collection('/users/Rct7r3fmUkpu4ifZ2Rxx/cartItems');

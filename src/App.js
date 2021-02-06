@@ -4,7 +4,7 @@ import ShopPage from './pages/shop/shop.component';
 import Header from './components/header/header.component';
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
 import { Route, Switch } from 'react-router-dom';
-import { auth } from './firebase/firebase.utils'
+import { auth, createUserProfileDocument } from './firebase/firebase.utils'
 import './App.css';
 
 
@@ -29,23 +29,40 @@ class App extends React.Component {
 
   componentDidMount() {
     console.log('component did mount');
+   
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
 
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({currentUser: user});
+      if (userAuth) {
+        const userRef = await createUserProfileDocument(userAuth);
+        userRef.onSnapshot(snapShot => {
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data()
+            }
+          });
 
-      console.log(user);
-    })
+          console.log(this.state);
+
+        })
+
+      }
+
+      this.setState({ currentUser: userAuth });
+
+    });
 
   }
 
   componentWillUnmount() {
+    console.log(`component will unmount`)
     this.unsubscribeFromAuth();
   }
 
 
   render() {
+    console.log('render')
 
-    console.log('render');
 
     return (
       <div>
@@ -63,3 +80,8 @@ class App extends React.Component {
 }
 
 export default App;
+
+
+//git add -A
+//git commit -m ""
+//git push origin main
